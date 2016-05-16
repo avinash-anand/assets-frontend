@@ -57,6 +57,11 @@ var ajaxCallbacks = {
       }
     }
   },
+  apiCollaboratorResponse: {
+    callbacks: {
+      
+    }
+  },
   apiSubscribeResponse: {
     callbacks: {
       success: function(response, $element, data, helpers) {
