@@ -62,10 +62,18 @@ var ajaxCallbacks = {
       success: function(response, $element, data, helpers, targets, container, type, actions) {
         var $containerElem = $element.parent('.js-mask-container').first();
         var $control = $containerElem.find('.js-mask-control').first();
+        var $validationMessage = $containerElem.find('[data-error-message-placeholder]').first();
 
         // trigger success event
-        $control.trigger('authenticationSuccess', response.clientSecret);
+        $control.trigger('setKey', response.clientSecret);
 
+        // hide form
+        $element.toggleClass('js-visible').toggleClass('js-hidden');
+        
+        // remove any error state on the input
+        $element.find('.form-field').removeClass('form-field--error');
+        $validationMessage.empty();
+        
         // reset form state
         helpers.utilities.setFormState($element, false);
         helpers.resetForms(helpers, type, data, container);
@@ -76,17 +84,20 @@ var ajaxCallbacks = {
       },
       error: function(response, $element, data, helpers, targets, container, type) {
         var $containerElem = $element.parent('.js-mask-container').first();
-        var $control = $containerElem.find('.js-mask-control').first();
         var redirectUrl = $element.data('error-redirect-url');
+        var $validationMessage = $containerElem.find('[data-error-message-placeholder]').first();
 
         // redirect to locked account url
         if (response.responseJSON.code === 'LOCKED_ACCOUNT') {
            window.location = redirectUrl;
         }
 
-        // trigger failed state
-        $control.trigger('authenticationFailed', response.responseJSON.message);
+        // add error state
+        $element.find('.form-field').addClass('form-field--error');
 
+        // show error message
+        $validationMessage.text(response.responseJSON.message);
+        
         // reset form state
         helpers.utilities.setFormState($element, false);
 

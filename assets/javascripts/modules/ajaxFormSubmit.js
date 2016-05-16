@@ -139,16 +139,17 @@ var ajaxFormSubmit = {
     return ret.join('&').replace(/%20/g, '+').replace(/=$/, '').replace(/&$/, '');
   },
 
+  // read ajax header value from input fields
   headerFromInput: function(formScope) {
-    var ret = {};
+    var headers = {};
     $.each($(formScope).find(':input'), function() {
       var input = $(this);
       if (input.data('ajax-header')) {
-        ret[this.name] = input.val();
+        headers[this.name] = input.val();
       }
     });
 
-    return ret;
+    return headers;
   },
 
   getCallback: function(config, data) {

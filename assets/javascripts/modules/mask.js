@@ -11,10 +11,10 @@ Example:
     <span class="js-visible js-mask-secret">mask</span>
     <span class="js-hidden js-mask-revealed">secret</span>
   </span>
-  <a href="#" class="js-visible js-mask-control" 
-     data-text-show="Show" 
+  <a href="#" class="js-visible js-mask-control"
+     data-text-show="Show"
      data-text-hide="Hide"
-     data-mask-authentication-required="true"
+     data-mask-toggle-target="js-mask-form"
      data-accessible-text="accessible text">
     <span data-toggle-text>Show</span> <span>accessible text</span></a>
   <form method="GET" class="js-mask-form js-hidden">
@@ -39,21 +39,12 @@ var maskControlEvent = function ($containerElem) {
   var $control = $containerElem.find('.js-mask-control').first();
   var $publicContent = $containerElem.find('.js-mask-revealed').first();
   var $secretContent = $containerElem.find('.js-mask-secret').first();
-  var $form = $containerElem.find('.js-mask-form').first();
-  var $validationMessage = $containerElem.find('[data-error-message-placeholder]').first();
   var secondsToTimeout = $containerElem.data('mask-timer');
-  var isAuthenticationRequired = $control.data('mask-authentication-required');
+  var targetSelector = $control.data('mask-toggle-target');
 
   // listen for success event for secure form
-  $control.on('authenticationSuccess', function(event, data) {
+  $control.on('setKey', function(event, data) {
     var text = $control.find('[data-toggle-text]').text();
-
-    // hide form
-    $form.toggleClass('js-visible').toggleClass('js-hidden');
-
-    // remove any error state on the input
-    $form.find('.form-field').removeClass('form-field--error');
-    $validationMessage.empty();
 
     // add client secret key
     $publicContent.text(data);
@@ -67,23 +58,14 @@ var maskControlEvent = function ($containerElem) {
     }
   });
 
-  // listen for success event for secure form
-  $control.on('authenticationFailed', function(error, result) {
-
-    // add error state
-    $form.find('.form-field').addClass('form-field--error');
-
-    // show error message
-    $validationMessage.text(result);
-  });
-
   $control.on('click', function(event) {
     var text = $control.find('[data-toggle-text]').text();
 
     event.preventDefault();
 
-    // if mask is secure, user need to provide password
-    if (isAuthenticationRequired) {
+    // if toggle target selector is provided
+    if (!!targetSelector) {
+      var $target = $containerElem.find('.' + targetSelector).first();
 
       // hide is already visible
       if($publicContent.hasClass('js-visible')) {
@@ -91,7 +73,7 @@ var maskControlEvent = function ($containerElem) {
         toggleState("Hide", $control, $publicContent, $secretContent);
 
       } else {
-        $form.toggleClass('js-visible').toggleClass('js-hidden');
+        $target.toggleClass('js-visible').toggleClass('js-hidden');
 
         // update button label
         toggleLabel(text, $control);
