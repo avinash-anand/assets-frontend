@@ -15,7 +15,7 @@ var fixtureTwoSecretText;
 var fixtureTwoControlTextShow;
 var fixtureTwoControlTextHide;
 
-var fixtureThreeMaskAuthenticationRequired;
+var $fixtureThreeMaskToggleTarget;
 var fixtureThreeMaskText;
 var fixtureThreeSecretText;
 var fixtureThreeControlTextShow;
@@ -36,7 +36,7 @@ var $fixtureThree;
 var $fixtureThreeQaMask;
 var $fixtureThreeQaSecret;
 var $fixtureThreeControl;
-var $fixtureThreeForm;
+var $fixtureThreeTarget;
 var $fixtureThreeErrorMessage;
 
 var setup = function () {
@@ -56,7 +56,7 @@ var setup = function () {
   $fixtureThreeQaMask = $fixtureThree.find('.qa-mask');
   $fixtureThreeQaSecret = $fixtureThree.find('.qa-secret');
   $fixtureThreeControl = $fixtureThree.find('.qa-mask-control');
-  $fixtureThreeForm = $fixtureThree.find('.qa-mask-form');
+  $fixtureThreeTarget = $fixtureThree.find('.qa-mask-target');
   $fixtureThreeErrorMessage = $fixtureThree.find('.qa-error-message');
 
   fixtureOneMaskText = $fixtureOneQaMask.text();
@@ -74,7 +74,7 @@ var setup = function () {
                               $fixtureTwoControl.data('accessibleText');
 
 
-  fixtureThreeMaskAuthenticationRequired = $fixtureThreeControl.data('mask-authentication-required');
+  $fixtureThreeMaskToggleTarget = $fixtureThreeControl.data('mask-toggle-target');
   fixtureThreeMaskText = $fixtureThreeQaMask.text();
   fixtureThreeSecretText = $fixtureThreeQaSecret.text();
   fixtureThreeControlTextShow = $fixtureThreeControl.data('textShow') + ' ' +
@@ -107,7 +107,7 @@ describe('Mask', function () {
       expect(fixtureThreeMaskText).toBe(fixtureThreeMaskText);
       expect(fixtureThreeSecretText).toBe(fixtureThreeSecretText);
       expect($fixtureThreeControl.text()).toBe(fixtureThreeControlTextShow);
-      expect(fixtureThreeMaskAuthenticationRequired).toBeTruthy();
+      expect($fixtureThreeMaskToggleTarget).toBe('qa-mask-target');
     });
 
     it('components visibility is correctly set up', function () {
@@ -117,7 +117,7 @@ describe('Mask', function () {
       expect($fixtureTwoQaMask).toHaveClass(JS_VISIBLE_SELECTOR);
       expect($fixtureTwoQaSecret).toHaveClass(JS_HIDDEN_SELECTOR);
 
-      expect($fixtureThreeForm).toHaveClass(JS_HIDDEN_SELECTOR);
+      expect($fixtureThreeTarget).toHaveClass(JS_HIDDEN_SELECTOR);
     });
   });
 
@@ -152,43 +152,16 @@ describe('Mask', function () {
       expect($fixtureTwoControl.text()).toBe(fixtureTwoControlTextShow);
     });
 
-    it('form is shown when control is clicked and authentication is required', function () {
+    it('should show target (if defined) when control', function () {
       $fixtureThreeControl.click();
       expect($fixtureThreeQaMask).toHaveClass(JS_VISIBLE_SELECTOR);
       expect($fixtureThreeQaSecret).toHaveClass(JS_HIDDEN_SELECTOR);
-      expect($fixtureThreeForm).toHaveClass(JS_VISIBLE_SELECTOR);
+      expect($fixtureThreeTarget).toHaveClass(JS_VISIBLE_SELECTOR);
     });
 
-    it('secret is only shown when control successfully authenticate for components which require authentication', function () {
-      $fixtureThreeControl.click();
-      expect($fixtureThreeQaMask).toHaveClass(JS_VISIBLE_SELECTOR);
-      expect($fixtureThreeQaSecret).toHaveClass(JS_HIDDEN_SELECTOR);
-      expect($fixtureThreeForm).toHaveClass(JS_VISIBLE_SELECTOR);
-
-      $fixtureThreeControl.trigger('authenticationSuccess', SECRET_KEY);
-
-      expect($fixtureThreeQaMask).toHaveClass(JS_HIDDEN_SELECTOR);
-      expect($fixtureThreeQaSecret).toHaveClass(JS_VISIBLE_SELECTOR);
+    it('should set secret key on "setKey" event', function () {
+      $fixtureThreeControl.trigger('setKey', SECRET_KEY);
       expect($fixtureThreeQaSecret.text()).toBe(SECRET_KEY);
-
-      expect($fixtureThreeForm).toHaveClass(JS_HIDDEN_SELECTOR);
-    });
-
-    it('secret is not shown when control fail to authenticate for components which require authentication', function () {
-      $fixtureThreeControl.click();
-      expect($fixtureThreeQaMask).toHaveClass(JS_VISIBLE_SELECTOR);
-      expect($fixtureThreeQaSecret).toHaveClass(JS_HIDDEN_SELECTOR);
-      expect($fixtureThreeForm).toHaveClass(JS_VISIBLE_SELECTOR);
-
-      expect($fixtureThreeErrorMessage.text()).toBe('');
-
-      $fixtureThreeControl.trigger('authenticationFailed', ERROR_MESSAGE);
-
-      expect($fixtureThreeQaMask).toHaveClass(JS_VISIBLE_SELECTOR);
-      expect($fixtureThreeQaSecret).toHaveClass(JS_HIDDEN_SELECTOR);
-
-      expect($fixtureThreeErrorMessage.text()).toBe(ERROR_MESSAGE);
-      expect($fixtureThreeForm.find('.form-field')).toHaveClass('form-field--error');
     });
   });
 
