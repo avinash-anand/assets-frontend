@@ -59,7 +59,52 @@ var ajaxCallbacks = {
   },
   apiCollaboratorResponse: {
     callbacks: {
-      
+      success: function(response, $element, data, helpers, targets, container, type) {
+
+        $element.find('.js-server-error').addClass('hidden');
+        $element.find('.js-custom-error').addClass('hidden');
+
+        // <tr data-collaborator-row="demo@test.com">
+        //   <td class="table--large">demo@test.com</td>
+        // <td class="table--large text--right hard--right">
+        //   <span class="faded-text">Admin</span>
+        //   </td>
+        //   <td class="text--right hard--right">
+        //   <form action="/developer/applications/1f5329c7-764a-400c-8651-85f9faf58f66/collaborator/remove?email=demo%40test.com" method="POST" data-callback-name="apiCollaboratorRemoveResponse.callbacks" data-ajax-waiting="true" data-ajax-submit="true" data-callback-args="" class="form">
+        //   <input type="hidden" name="csrfToken" value="c295f158594db389685fac111bd8f92d9ac05f7c-1463480617778-62a6fbfbf611070466b40c0f">
+        //   <span class="error-notification js-remove-error">Server error, please try again</span>
+        // <button data-remove-collaborator-link="demo@test.com" id="submit" lass="button button--link button--small button--flush flush hard" type="submit">Remove</button>
+        //   </form>
+        //   </td>
+        //   </tr>
+
+        helpers.base.success.apply(null, arguments);
+      },
+
+      error: function(response, $element, data, helpers, targets, container, type) {
+        //$element.find('.js-custom-error').removeClass('hidden').text('some error');
+        $element.find('.js-server-error').removeClass('hidden');
+        helpers.base.error.apply(null, arguments);
+      }
+    }
+  },
+  apiCollaboratorRemoveResponse: {
+    callbacks: {
+      success: function(response, $element, data, helpers, targets, container, type) {
+        var $button = $element.find('[type=submit]');
+        var emailAddress = $button.data('remove-collaborator-link');
+
+        // remove row
+        $('[data-collaborator-row="' + emailAddress + '"]').remove();
+
+        helpers.base.success.apply(null, arguments);
+      },
+
+      error: function(response, $element, data, helpers, targets, container, type) {
+        // show error message
+        $element.find('.js-remove-error').addClass('inline-block');
+        helpers.base.error.apply(null, arguments);
+      }
     }
   },
   apiSubscribeResponse: {
