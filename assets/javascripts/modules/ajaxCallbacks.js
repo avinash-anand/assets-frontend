@@ -60,28 +60,51 @@ var ajaxCallbacks = {
   apiCollaboratorResponse: {
     callbacks: {
       success: function(response, $element, data, helpers, targets, container, type) {
+        var email = $element.find('[name=email]').val();
+        var role = $element.find('[name=role]:checked').val();
+        var list = $('[data-collaborator-list]');
+        var row = $('<tr></tr>').data('collaboratorRow', email);
+        var nameCell = $('<td class="table--large"></td>').text(email);
+        var roleCell = $('<td class="table--large text--right hard--right"></td>');
+        var formCell = $('<td class="text--right hard--right"></td>');
+        var error = $('<span class="error-notification js-remove-error"></span>').text('Server error, please try again');
+        var button = $('<button id="submit" class="button button--link button--small button--flush flush hard" type="submit"></button>')
+                        .data('removeCollaboratorLink', email)
+                        .text('Remove');
+        var form = $('<form>')
+          .attr('action', '/developer/applications/1f5329c7-764a-400c-8651-85f9faf58f66/collaborator/remove?email=' + email)
+          .attr('method', 'POST')
+          .addClass('form')
+          .data('callbackName', 'apiCollaboratorRemoveResponse.callbacks')
+          .data('callbackArgs', '')
+          .data('ajaxWaiting', true)
+          .data('ajaxSubmit', true);
+
+        if (role === 'ADMINISTRATOR') {
+          roleCell.append($('<span class="faded-text">Admin</span>'));
+        }
 
         $element.find('.js-server-error').addClass('hidden');
         $element.find('.js-custom-error').addClass('hidden');
 
-        // <tr data-collaborator-row="demo@test.com">
-        //   <td class="table--large">demo@test.com</td>
-        // <td class="table--large text--right hard--right">
-        //   <span class="faded-text">Admin</span>
-        //   </td>
-        //   <td class="text--right hard--right">
-        //   <form action="/developer/applications/1f5329c7-764a-400c-8651-85f9faf58f66/collaborator/remove?email=demo%40test.com" method="POST" data-callback-name="apiCollaboratorRemoveResponse.callbacks" data-ajax-waiting="true" data-ajax-submit="true" data-callback-args="" class="form">
-        //   <input type="hidden" name="csrfToken" value="c295f158594db389685fac111bd8f92d9ac05f7c-1463480617778-62a6fbfbf611070466b40c0f">
-        //   <span class="error-notification js-remove-error">Server error, please try again</span>
-        // <button data-remove-collaborator-link="demo@test.com" id="submit" lass="button button--link button--small button--flush flush hard" type="submit">Remove</button>
-        //   </form>
-        //   </td>
-        //   </tr>
+        form.append(error, button);
+        formCell.append(form);
+        row.append(nameCell, roleCell, formCell);
+        list.append(row);
+
+        // reset form state
+        helpers.utilities.setFormState($element, false);
+        helpers.resetForms(helpers, type, data, container);
+        $element[0].reset();
+        $element.find('[name=email]').val('');
 
         helpers.base.success.apply(null, arguments);
       },
 
       error: function(response, $element, data, helpers, targets, container, type) {
+        // reset form state
+        helpers.utilities.setFormState($element, false);
+
         //$element.find('.js-custom-error').removeClass('hidden').text('some error');
         $element.find('.js-server-error').removeClass('hidden');
         helpers.base.error.apply(null, arguments);
@@ -101,6 +124,9 @@ var ajaxCallbacks = {
       },
 
       error: function(response, $element, data, helpers, targets, container, type) {
+        // reset form state
+        helpers.utilities.setFormState($element, false);
+
         // show error message
         $element.find('.js-remove-error').addClass('inline-block');
         helpers.base.error.apply(null, arguments);
