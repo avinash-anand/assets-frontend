@@ -61,53 +61,63 @@ var ajaxCallbacks = {
     callbacks: {
       success: function(response, $element, data, helpers, targets, container, type) {
         var email = $element.find('[name=email]').val();
-        var role = $element.find('[name=role]:checked').val();
         var list = $('[data-collaborator-list]');
-        var row = $('<tr></tr>').data('collaboratorRow', email);
-        var nameCell = $('<td class="table--large"></td>').text(email);
-        var roleCell = $('<td class="table--large text--right hard--right"></td>');
-        var formCell = $('<td class="text--right hard--right"></td>');
-        var error = $('<span class="error-notification js-remove-error"></span>').text('Server error, please try again');
-        var button = $('<button id="submit" class="button button--link button--small button--flush flush hard" type="submit"></button>')
-                        .data('removeCollaboratorLink', email)
-                        .text('Remove');
-        var form = $('<form>')
-          .attr('action', '/developer/applications/1f5329c7-764a-400c-8651-85f9faf58f66/collaborator/remove?email=' + email)
-          .attr('method', 'POST')
-          .addClass('form')
-          .data('callbackName', 'apiCollaboratorRemoveResponse.callbacks')
-          .data('callbackArgs', '')
-          .data('ajaxWaiting', true)
-          .data('ajaxSubmit', true);
+        var row = list.children().first().clone(true);
+        var children = row.children();
+        var form = children.last().find('.form');
 
-        if (role === 'ADMINISTRATOR') {
-          roleCell.append($('<span class="faded-text">Admin</span>'));
+        // set attributes
+        row.attr('data-collaborator-row', email);
+        children.last().find('[type="submit"]').attr('data-remove-collaborator-link', email)
+        form.attr('action', form.attr('action') + email);
+
+        // set display values
+        children.first().text(email);
+        if ($element.find('[name=role]:checked').val() !== 'ADMINISTRATOR') {
+          children.eq(1).empty();
         }
 
-        $element.find('.js-server-error').addClass('hidden');
-        $element.find('.js-custom-error').addClass('hidden');
+        // add to the list
+        list.append(row.removeClass('hidden'));
 
-        form.append(error, button);
-        formCell.append(form);
-        row.append(nameCell, roleCell, formCell);
-        list.append(row);
+        // remove any error validation
+        $element.find('.form-field--error').removeClass('form-field--error');
 
-        // reset form state
-        helpers.utilities.setFormState($element, false);
+        // display alert info
+        $element.find('.js-info')
+          .text('We have sent an email to '+ email +' confirming they have been added to this application.')
+          .removeClass('hidden');
+
+        // reset form state & clear value
         helpers.resetForms(helpers, type, data, container);
-        $element[0].reset();
         $element.find('[name=email]').val('');
 
         helpers.base.success.apply(null, arguments);
       },
 
       error: function(response, $element, data, helpers, targets, container, type) {
+        var $email = $element.find('[name=email]');
+        var $error = $email.siblings('.error-notification');
+
+        // add error state class
+        $email.parent().addClass('form-field--error');
+
+        // add error message
+        if ($error.length === 0) {
+          $('<p class="error-notification" data-field-error-email>'+ response.message + '</p>').insertBefore($email);
+        } else {
+          $error.text(response.message);
+        }
+
+        // hide alert info
+        $element.find('.js-info').empty().addClass('hidden');
+
+        helpers.base.error.apply(null, arguments);
+      },
+
+      always: function(response, $element, data, helpers, targets, container, type, actions) {
         // reset form state
         helpers.utilities.setFormState($element, false);
-
-        //$element.find('.js-custom-error').removeClass('hidden').text('some error');
-        $element.find('.js-server-error').removeClass('hidden');
-        helpers.base.error.apply(null, arguments);
       }
     }
   },
